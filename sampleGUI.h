@@ -96,6 +96,8 @@ float live_object_xz_trans[2];
 float live_object_y_trans;
 int live_draw_floor;
 int live_draw_object;
+int wireframe_cylinder;
+int solid_cylinder;
 int live_use_depth_buffer;
 int live_texture_capture;
 

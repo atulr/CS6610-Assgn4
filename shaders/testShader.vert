@@ -4,6 +4,7 @@ varying vec2 texCoord;
 //attribute vec3 vTangent; 
 uniform float time;
 uniform float speed;
+uniform float stop;
 //contains ideas from http://www.ozone3d.net/tutorials/bump_mapping_p3.php
 void main(void)
 {
@@ -14,9 +15,9 @@ void main(void)
   	position.xy *= (position.z < 1.0 || position.z > 9.0) ? radius : 1.0;
   	position.xy = position.xy * 0.5;
   	
-    float angle = position.z * 0.5 + time * 1.0 * speed;
+    float angle = position.z * 0.5 * stop + time * 1.0 * speed;
   	
-    position.y += abs(sin(angle));
+    position.y += abs(sin(angle)) * stop;
     
     gl_Position = gl_ModelViewProjectionMatrix * position;
 //	gl_Position = ftransform();

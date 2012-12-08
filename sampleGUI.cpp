@@ -6,8 +6,7 @@ GLuint listIndex;
 GLfloat  ambient[] = {0.1, 0.1, 0.1, 0.1};
 GLfloat  diffuse[] = {1.0, 1.0, 1.0, 1.0};
 GLfloat	 lightPos[]	= {-2.5f, 10.0, 3.0, 1.0};
-float xFactor = -5.0f;
-// where the drawing stuff should go
+float xFactor = -5.0f, xPosition = 0.0f, zPosition = 0.f;
 float timeLine = 0.f;
 void createDisplayList() {
     glNewList(listIndex, GL_COMPILE);
@@ -20,14 +19,11 @@ void createDisplayList() {
     
 }
 
-void convertToNormalMap() {
-    
-}
 void myGlutDisplay(	void )
 {
     if (texCapture == 1)
         captureSceneToTexture();
-    xFactor += 0.001;
+    xFactor += live_anim_speed/1000;
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);   // clears the screen
     
@@ -58,14 +54,20 @@ void myGlutDisplay(	void )
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, lowShiny);
 
     // using a shader
-    GLint loc, loc1, speed, time;
+    GLint loc, loc1, speed, time, stop;
     glUseProgramObjectARB(glsl_program_test);
     loc = glGetUniformLocationARB(glsl_program_test, "sampler0");
     loc1 = glGetUniformLocationARB(glsl_program_test, "sampler1");
     speed = glGetUniformLocationARB(glsl_program_test, "speed");
     time = glGetUniformLocationARB(glsl_program_test, "time");
+    stop = glGetUniformLocationARB(glsl_program_test, "stop");
+    if(live_anim_speed > 0.0f)
+            glUniform1fARB(stop, 1.0);
+    else {
+            xFactor += 0.f;
+            glUniform1fARB(stop, 0.0);
+    }
 
-    glUniform1iARB(speed, 0);
     timeLine += 0.01f;
     glUniform1fARB(time, timeLine);
     glUniform1fARB(speed, 0.3);
@@ -76,9 +78,12 @@ void myGlutDisplay(	void )
 
     glUniform1iARB(loc1, 1);
 //        drawObject();
-    glTranslatef(live_object_xz_trans[0] - 10.0 + xFactor, live_object_y_trans + 1.0, -live_object_xz_trans[1] + 3);
-    glCallList(listIndex);
-
+    printf("xpos %f \n", xPosition);
+    glTranslatef(live_object_xz_trans[0] - 10.0 + xFactor + xPosition, live_object_y_trans + 1.0, -live_object_xz_trans[1] + 3 + zPosition);
+    if(solid_cylinder)
+        glCallList(listIndex);
+    if(wireframe_cylinder)
+        glCallList(listIndex + 1);
     glUseProgramObjectARB(0);
     glDisable(GL_TEXTURE0);
     glDisable(GL_TEXTURE1);
@@ -92,13 +97,23 @@ void myGlutDisplay(	void )
 
 void drawWireFrameCylinder() {
     glColor3f(0, 1, 1);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glDisable(GL_COLOR_MATERIAL);
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    gluQuadricDrawStyle(cylinderQuad, GLU_LINE);
     
+   
     glPushMatrix();
     glRotatef(90.0, 0, 1.0, 0);
     glTranslatef(- 2.5, 0.f,  3);
     
     gluCylinder(cylinderQuad, 0.5, 0.5, 5.0, 20, 20);
-    glPopMatrix();
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_COLOR_MATERIAL);
+    
+    glPopAttrib();
 
     
 }
@@ -124,7 +139,6 @@ void drawSolidCylinder(){
         gluQuadricNormals(cylinderQuad, GLU_SMOOTH);
 
 		glPushMatrix();
-        printf("%f \n", xFactor);
         
 		
         glRotatef(90.0, 0, 1.0, 0);
@@ -429,16 +443,23 @@ void myGlutMotion(int x, int y)
 }
 
 // you can put keyboard shortcuts in here
-void myGlutKeyboard(unsigned char key, int x, int y)
+void myGlutKeyboard(int key, int x, int y)
 {
 	switch(key)
 	{
 	// quit
-	case 27: 
-	case 'q':
-	case 'Q':
-		exit(0);
-		break;
+		case GLUT_KEY_UP:
+			xPosition -= 0.1;
+			break;
+		case GLUT_KEY_DOWN:
+			xPosition += 0.1;
+			break;
+		case GLUT_KEY_LEFT:
+			zPosition += 0.1;
+			break;
+		case GLUT_KEY_RIGHT:
+			zPosition -= 0.1;
+			break;
 	}
 
 	glutPostRedisplay();
@@ -613,12 +634,15 @@ void initGLUI(){
     
     glui->add_spinner_to_panel(anim_rollout, "Speed", GLUI_SPINNER_FLOAT, &live_anim_speed);
     
-	spin_s->set_float_limits(0.1, 10.0);
+	spin_s->set_float_limits(0.0, 10.0);
     
 	// our checkbox options for deciding what to draw
 	glui->add_checkbox("Draw Floor", &live_draw_floor);
 	glui->add_checkbox("Draw Object", &live_draw_object);
-    
+    glui->add_checkbox("Solid Cylinder", &solid_cylinder);
+
+    glui->add_checkbox("WireFrame Cylinder", &wireframe_cylinder);
+
 	// empty space
 	glui->add_statictext("");
     
@@ -677,7 +701,7 @@ int main(int argc,	char* argv[])
 	glutDisplayFunc(myGlutDisplay);
 	GLUI_Master.set_glutReshapeFunc(myGlutReshape);
 	GLUI_Master.set_glutIdleFunc(myGlutIdle);
-	GLUI_Master.set_glutKeyboardFunc(myGlutKeyboard);
+	GLUI_Master.set_glutSpecialFunc(myGlutKeyboard);
 	GLUI_Master.set_glutMouseFunc(myGlutMouse);
 	glutMotionFunc(myGlutMotion);
 
