@@ -15,6 +15,8 @@
 		6EC62720106719BB0003710F /* GLUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC6271F106719BB0003710F /* GLUI.framework */; };
 		6EC6272410671A7D0003710F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC6272310671A7D0003710F /* OpenGL.framework */; };
 		6EC6272810671A890003710F /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6EC6272710671A890003710F /* GLUT.framework */; };
+		EED544191672D79400AC6542 /* floorBumpMap.frag in Sources */ = {isa = PBXBuildFile; fileRef = EED544181672D79400AC6542 /* floorBumpMap.frag */; };
+		EED5441C1672D7B700AC6542 /* floorBumpMap.vert in Sources */ = {isa = PBXBuildFile; fileRef = EED5441B1672D7B700AC6542 /* floorBumpMap.vert */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +34,8 @@
 		6EC6272D10671AE40003710F /* texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = texture.cpp; sourceTree = "<group>"; };
 		6EC6272E10671AE40003710F /* texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
 		6EC6272F10671AE40003710F /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = textures; sourceTree = "<group>"; };
+		EED544181672D79400AC6542 /* floorBumpMap.frag */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = floorBumpMap.frag; sourceTree = "<group>"; };
+		EED5441B1672D7B700AC6542 /* floorBumpMap.vert */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = floorBumpMap.vert; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +55,8 @@
 		6EC627041067192F0003710F = {
 			isa = PBXGroup;
 			children = (
+				EED5441B1672D7B700AC6542 /* floorBumpMap.vert */,
+				EED544181672D79400AC6542 /* floorBumpMap.frag */,
 				6E6F698F16370569002E277D /* shaders */,
 				6E6F697C1636F3C2002E277D /* utilities.cpp */,
 				6E6F697D1636F3C2002E277D /* utilities.h */,
@@ -141,6 +147,8 @@
 				6E2D32F41616B28C0066453F /* texture.cpp in Sources */,
 				6E2D3337161A10030066453F /* sampleGUI.cpp in Sources */,
 				6E6F697E1636F3C2002E277D /* utilities.cpp in Sources */,
+				EED544191672D79400AC6542 /* floorBumpMap.frag in Sources */,
+				EED5441C1672D7B700AC6542 /* floorBumpMap.vert in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -3,7 +3,7 @@
 
 #include "utilities.h"
 
-extern GLuint textures[2];
+extern GLuint textures[3];
 
 
 // load the textures

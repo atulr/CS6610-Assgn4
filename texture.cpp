@@ -5,22 +5,22 @@
 
 #include "texture.h"
 
-std::string textureNames[2] = { "textures/fish_color_map.rgb",  "textures/lightmap.rgb" };
+std::string textureNames[3] = { "textures/fish_color_map.rgb",  "textures/floor_normal_map.rgb", "textures/fish_normal_map.rgb" };
 
-GLuint textures[2];
+GLuint textures[3];
 
 void LoadGLTextures() {
-    static unsigned *image[2];
+    static unsigned *image[3];
     static int width, height, components;
     
     // allocate space for texture
-	for (int i=0; i<2; i++)
+	for (int i=0; i<3; i++)
 		image[i] = new unsigned;
     
     glEnable(GL_TEXTURE_2D);
     
     // Create Texture
-	glGenTextures(2, textures);
+	glGenTextures(3, textures);
     
 	image[0] = read_texture(textureNames[0].c_str(), &width, &height, &components);
 	glBindTexture(GL_TEXTURE_2D, textures[0]);
@@ -40,6 +40,17 @@ void LoadGLTextures() {
 	glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[1]);
 	
     glDisable(GL_TEXTURE_2D);
+    
+    image[2] = read_texture(textureNames[2].c_str(), &width, &height, &components);
+	glBindTexture(GL_TEXTURE_2D, textures[2]);
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, components, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[2]);
+	
+    glDisable(GL_TEXTURE_2D);
+
     
     // free that part
 	for (int i=0; i<2; i++)

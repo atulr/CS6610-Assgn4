@@ -3,9 +3,12 @@ GLUquadric *cylinderQuad;
 GLuint listIndex; 
 /////////////////////////////////////////////////////////////////
 //// Main opengl stuff
-
+GLfloat  ambient[] = {0.1, 0.1, 0.1, 0.1};
+GLfloat  diffuse[] = {1.0, 1.0, 1.0, 1.0};
+GLfloat	 lightPos[]	= {-2.5f, 10.0, 3.0, 1.0};
+float xFactor = -5.0f;
 // where the drawing stuff should go
-
+float timeLine = 0.f;
 void createDisplayList() {
     glNewList(listIndex, GL_COMPILE);
         drawSolidCylinder();
@@ -16,29 +19,69 @@ void createDisplayList() {
     glEndList();
     
 }
+
+void convertToNormalMap() {
+    
+}
 void myGlutDisplay(	void )
 {
     if (texCapture == 1)
         captureSceneToTexture();
-    
+    xFactor += 0.001;
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);   // clears the screen
     
     glLoadIdentity(); // reset the modelview matrix to the default state
     gluLookAt(eye[0], eye[1], eye[2], lookat[0], lookat[1], lookat[2], 0, 1, 0);    // place the camera where we want
-        
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    
     // draws the scene
     // fixed function pipeline
-    drawScene();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+    glUseProgramObjectARB(glslBumpMap);
+    glUniform1iARB(option_handle, 0);
+        drawScene();
+    glUseProgramObjectARB(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
     
+    GLfloat lowShiny[]		= {25.0};
+	GLfloat yellow[]		= {0.6, 0.6, 0.2, 1.0};
+	GLfloat green[]			= {0.4, 0.6, 0.4, 1.0};	
+	GLfloat spec[]			= {1.0, 1.0, 1.0, 1.0};
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, green);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, lowShiny);
+
     // using a shader
+    GLint loc, loc1, speed, time;
     glUseProgramObjectARB(glsl_program_test);
-        glUniform1iARB(option_handle, live_optionValue);
+    loc = glGetUniformLocationARB(glsl_program_test, "sampler0");
+    loc1 = glGetUniformLocationARB(glsl_program_test, "sampler1");
+    speed = glGetUniformLocationARB(glsl_program_test, "speed");
+    time = glGetUniformLocationARB(glsl_program_test, "time");
+
+    glUniform1iARB(speed, 0);
+    timeLine += 0.01f;
+    glUniform1fARB(time, timeLine);
+    glUniform1fARB(speed, 0.3);
+
+    glUniform1iARB(loc, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+
+    glUniform1iARB(loc1, 1);
 //        drawObject();
-    
+    glTranslatef(live_object_xz_trans[0] - 10.0 + xFactor, live_object_y_trans + 1.0, -live_object_xz_trans[1] + 3);
     glCallList(listIndex);
 
     glUseProgramObjectARB(0);
+    glDisable(GL_TEXTURE0);
+    glDisable(GL_TEXTURE1);
 
 
     
@@ -69,17 +112,21 @@ void drawSolidCylinder(){
     glDisable(GL_COLOR_MATERIAL);
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
 	
     
 	if (live_draw_object)
 	{
 		glColor3f(0, 1, 1);
+        gluQuadricDrawStyle(cylinderQuad, GLU_FILL);
+
         gluQuadricTexture(cylinderQuad, GL_TRUE);
+        gluQuadricNormals(cylinderQuad, GLU_SMOOTH);
 
 		glPushMatrix();
-        printf("%f \n", live_object_xz_trans[0]);
-		glTranslatef(live_object_xz_trans[0] - 5, live_object_y_trans + 1.0, -live_object_xz_trans[1] + 3);
+        printf("%f \n", xFactor);
+        
+		
         glRotatef(90.0, 0, 1.0, 0);
 
         gluCylinder(cylinderQuad, 1.0, 1.0, 10.0, 20, 20);
@@ -119,15 +166,25 @@ void drawScene(){
         
         glPopAttrib();
         
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glDisable(GL_COLOR_MATERIAL);
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
+        
         
 		glBegin(GL_TRIANGLE_FAN);
             glColor3f(0.4f, 0.4f, 0.4f);    // note: color is state and only needs to be set once
-            glVertex3f(-10, 0, -10);
-            glVertex3f( 10, 0, -10);
-            glVertex3f( 10, 0,  10);
-            glVertex3f(-10, 0,  10);
+            glTexCoord2f(0,0); glVertex3f(-10, 0, -10);
+            glTexCoord2f(0,1); glVertex3f( 10, 0, -10);
+            glTexCoord2f(1,1); glVertex3f( 10, 0,  10);
+            glTexCoord2f(1,0); glVertex3f(-10, 0,  10);
 		glEnd();
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_COLOR_MATERIAL);
         
+        glPopAttrib();
+ 
                 
         checkGLError("after wall");
 	}
@@ -177,6 +234,12 @@ void initGL(){
     // sets up a frame buffer object
     if (setUpFrameBufferObj() == 1 )
         std::cout << "Framebuffer creation failed!!!" << std::endl << std::endl;
+	glEnable(GL_LIGHTING);
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+        glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+	glEnable(GL_LIGHT0);
 
     // color to clear the screen to
     glClearColor(0, 0, 0, 0);
@@ -586,7 +649,7 @@ void initGLUI(){
  void initUniformVars()
  {
      glUseProgramObjectARB(glsl_program_test);
-        option_handle = glGetUniformLocationARB(glsl_program_test, "option");
+        option_handle = glGetUniformLocationARB(glsl_program_test, "sampler0");
      glUseProgramObjectARB(0);
  }
  
@@ -628,7 +691,8 @@ int main(int argc,	char* argv[])
     // load and compile the shaders
     createShader(glsl_program_test, vertexShader_test, fragmentShader_test, "shaders/testShader.vert", "shaders/testShader.frag");
     initUniformVars();
-    
+    createShader(glslBumpMap, bumpMapVertexShader, bumpMapFragmentShader, "/Users/atulrungta/Desktop/CS6610-Assgn4/floorBumpMap.vert", "/Users/atulrungta/Desktop/CS6610-Assgn4/floorBumpMap.frag");
+
     cylinderQuad = gluNewQuadric();
 	// initialize the camera
 	eye[0] = 0; 	eye[1] = 4;     eye[2] = 10;

@@ -31,6 +31,10 @@ GLhandleARB  glsl_program_test;
 GLhandleARB  vertexShader_test;
 GLhandleARB  fragmentShader_test;
 
+GLhandleARB  glslBumpMap;
+GLhandleARB  bumpMapVertexShader;
+GLhandleARB  bumpMapFragmentShader;
+
 GLint option_handle;
 
 int live_optionValue;
